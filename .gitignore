@@ -45,3 +45,10 @@ private/
 
 # Claude Code specific
 .claude/settings.local.json
+
+# Materials folder
+materials/
+
+# Docker runtime data
+mcp/caddy/caddy/data/
+mcp/caddy/caddy/config/
