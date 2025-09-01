@@ -1,0 +1,47 @@
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Runtime data
+pids/
+*.pid
+*.seed
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# Local configuration files
+.env
+.env.local
+.env.*.local
+config.local.*
+settings.local.*
+
+# Personal/sensitive files
+secrets/
+private/
+*.key
+*.pem
+*.crt
+*.p12
+
+# Claude Code specific
+.claude/settings.local.json
