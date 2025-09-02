@@ -2,15 +2,7 @@
     admin :2019
 }
 
-:8080 {
-    respond "Hello from Caddy managed by MCP! 🚀"
+# Massage site proxy configuration
+massage.robobobr.ru {
+    reverse_proxy lena-massage-website:3100
 }
-
-:8081 {
-    respond "Test site #2 - Caddy + MCP Integration"
-}
-
-# Example reverse proxy configuration (commented out)
-# example.local {
-#     reverse_proxy localhost:3000
-# }

@@ -1,25 +1,24 @@
-version: '3.8'
-
 services:
   # Caddy web server
   caddy:
     image: caddy:latest
     container_name: caddy-server
     restart: unless-stopped
+    network_mode: bridge
+    external_links:
+      - lena-massage-website:lena-massage-website
     ports:
       - "80:80"
       - "443:443"
-      - "2019:2019"  # Admin API port
-      - "9080:8080"  # Test sites (mapped to avoid conflict)
-      - "9081:8081"
+      - "127.0.0.1:2019:2019"  # Admin API port - localhost only for security
+      - "127.0.0.1:9080:8080"  # Test sites - localhost only for security
+      - "127.0.0.1:9081:8081"  # Test sites - localhost only for security
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./caddy/data:/data
-      - ./caddy/config:/config
+      - ./docker-data/caddy-data:/data
+      - ./docker-data/caddy-config:/config
     environment:
       - CADDY_ADMIN=0.0.0.0:2019
-    networks:
-      - caddy-network
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:2019/config/"]
       interval: 30s
@@ -34,15 +33,16 @@ services:
       dockerfile: Dockerfile
     container_name: caddy-mcp-server
     restart: unless-stopped
+    network_mode: bridge
+    external_links:
+      - caddy-server:caddy
     ports:
-      - "7000:7000"  # MCP server port (for HTTP/SSE transport)
+      - "127.0.0.1:7000:7000"  # MCP server port - localhost only for security
     environment:
-      - CADDY_URL=http://caddy:2019  # Internal Docker network communication
+      - CADDY_URL=http://caddy:2019  # Connect via external_links
       - MCP_TRANSPORT=httpstream     # Can be: stdio, sse, httpstream
       - MCP_PORT=7000
     command: ["./caddy-mcp", "-transport", "httpstream", "-url", "http://caddy:2019", "-port", "7000"]
-    networks:
-      - caddy-network
     depends_on:
       caddy:
         condition: service_healthy
@@ -53,13 +53,3 @@ services:
       retries: 3
       start_period: 10s
 
-networks:
-  caddy-network:
-    driver: bridge
-    name: caddy-mcp-network
-
-volumes:
-  caddy_data:
-    name: caddy-data
-  caddy_config:
-    name: caddy-config

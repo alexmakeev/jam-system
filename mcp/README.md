@@ -117,8 +117,15 @@ Claude Code has native MCP support with multiple configuration options:
 
 #### **Method 1: CLI Command (Quickest)**
 ```bash
+# CRITICAL: Use -- separator to properly pass arguments to docker exec
 claude mcp add caddy-mcp --scope user -- docker exec -i caddy-mcp-server ./caddy-mcp -transport stdio -url http://caddy:2019
 ```
+
+**⚠️ Common Issues & Solutions:**
+- **Use `-- ` separator** before docker arguments to prevent CLI parsing conflicts
+- **Test with debug mode** to see connection details: `claude mcp list --debug`
+- **Global scope** (`--scope user`) makes MCP available across all projects
+- If connection fails, check containers are running: `docker ps | grep mcp`
 
 #### **Method 2: Configuration File (Recommended)**
 
@@ -149,8 +156,21 @@ EOF
 **Management commands:**
 ```bash
 claude mcp list                    # List configured servers
-claude mcp get server-name        # Get specific server details  
-claude mcp remove server-name     # Remove a server
+claude mcp list --debug            # Show detailed connection logs (helpful for troubleshooting)
+claude mcp get server-name         # Get specific server details  
+claude mcp remove server-name      # Remove a server
+claude mcp remove server-name --scope user  # Remove from global config
+```
+
+**Debugging MCP Connection Issues:**
+```bash
+# Debug mode shows detailed connection logs including spawn errors
+claude mcp list --debug
+
+# Common error patterns in debug output:
+# - "ENOENT: no such file or directory" → Missing -- separator in command
+# - "Failed to connect" → Container not running or wrong arguments
+# - "Successfully connected" → Working correctly
 ```
 
 ### **Claude Desktop (Desktop App)**
@@ -233,9 +253,17 @@ cat ~/.claude/mcp.json
 
 **Claude Code template for new servers:**
 ```bash
-# Replace values for new MCP servers
+# Replace values for new MCP servers - ALWAYS use -- separator before docker args
 claude mcp add SERVER-NAME --scope user -- docker exec -i CONTAINER-NAME ./MCP-BINARY -transport stdio -url http://TARGET:PORT
+
+# Example with actual values:
+claude mcp add my-server --scope user -- docker exec -i my-mcp-server ./my-mcp -transport stdio -url http://my-service:8080
 ```
+
+**Configuration Scope Best Practices:**
+- **Use `--scope user`** for personal MCP servers (recommended for most cases)
+- **Use `--scope project`** only when the MCP should be shared via git with team
+- **Use `--scope local`** only for project-specific testing
 
 ### Future MCP Server Examples
 
@@ -304,7 +332,11 @@ To avoid conflicts, each MCP server uses a unique port range:
 
 5. **Configure in Claude Code** (recommended):
    ```bash
+   # CRITICAL: Always use -- before docker arguments
    claude mcp add new-server --scope user -- docker exec -i new-server-container ./mcp-binary -transport stdio -url http://target:port
+   
+   # Verify configuration works:
+   claude mcp list --debug  # Should show "Successfully connected"
    ```
 
 6. **Document in server README.md** with:
