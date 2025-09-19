@@ -1,0 +1,67 @@
+services:
+  # Supabase Database
+  db:
+    image: supabase/postgres:15.1.0.147
+    container_name: dev-supabase-db
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_PORT: 5432
+    ports:
+      - "127.0.0.1:15433:5432"
+    volumes:
+      - ./docker_data/db:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    restart: unless-stopped
+    networks:
+      - supabase-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Supabase REST API (PostgREST)
+  rest:
+    image: postgrest/postgrest:v12.0.1
+    container_name: dev-supabase-rest
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGRST_DB_URI: postgres://postgres:postgres@db:5432/postgres
+      PGRST_DB_SCHEMAS: public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: super-secret-jwt-token-with-at-least-32-characters-long
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+    ports:
+      - "127.0.0.1:13000:3000"
+    restart: unless-stopped
+    networks:
+      - supabase-network
+
+  # Supabase Studio (Admin Interface)
+  studio:
+    image: supabase/studio:20240326-5e5586d
+    container_name: dev-supabase-studio
+    depends_on:
+      - rest
+    environment:
+      STUDIO_PG_META_URL: http://rest:3000/
+      POSTGRES_PASSWORD: postgres
+      DEFAULT_ORGANIZATION_NAME: Default Organization
+      DEFAULT_PROJECT_NAME: Default Project
+      SUPABASE_URL: http://localhost:13000
+      SUPABASE_REST_URL: http://rest:3000
+      SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+      SUPABASE_SERVICE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
+    ports:
+      - "127.0.0.1:13010:3000"
+    restart: unless-stopped
+    networks:
+      - supabase-network
+
+networks:
+  supabase-network:
+    driver: bridge

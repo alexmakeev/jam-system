@@ -1,0 +1,19 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: dev-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: devuser
+      RABBITMQ_DEFAULT_PASS: devpassword
+    ports:
+      - "127.0.0.1:15672:15672"  # Management UI
+      - "127.0.0.1:15673:5672"   # AMQP port
+    volumes:
+      - ./docker_data:/var/lib/rabbitmq
+    restart: unless-stopped
+    network_mode: bridge
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 10s
+      retries: 5

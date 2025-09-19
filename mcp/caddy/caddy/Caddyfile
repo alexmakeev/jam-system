@@ -1,8 +1,0 @@
-{
-    admin :2019
-}
-
-# Massage site proxy configuration
-massage.robobobr.ru {
-    reverse_proxy lena-massage-website:3100
-}

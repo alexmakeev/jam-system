@@ -1,0 +1,19 @@
+services:
+  postgresql:
+    image: postgres:15
+    container_name: dev-postgresql
+    environment:
+      POSTGRES_DB: devdb
+      POSTGRES_USER: devuser
+      POSTGRES_PASSWORD: devpassword
+    ports:
+      - "127.0.0.1:15432:5432"
+    volumes:
+      - ./docker_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    network_mode: bridge
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U devuser -d devdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

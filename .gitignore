@@ -56,3 +56,4 @@ mcp/caddy/caddy/config/
 # Docker persistent data directories
 # All bound volumes should be stored in docker-data folders
 **/docker-data/
+**/docker_data/
