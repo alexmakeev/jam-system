@@ -31,3 +31,4 @@ No build system or test commands are currently configured in this repository.
 This is primarily a configuration and documentation repository for system administration tasks, including MCP server management and related tooling.
 - Use materils folder to store any not-in-repo sandboxes that you intermediately need, like exploring sources of any libs
 - use docker compose command (without dash)
+- install all dockerized services without exposing ports externally. Add super dry docs on how use newly installed service into ./CORE.md
