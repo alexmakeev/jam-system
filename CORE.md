@@ -46,28 +46,55 @@ docker run -d --name service-name \
 - ARCHITECTURE.md: System design, components
 
 ## Available Dev Services
-- PostgreSQL: postgresql://devuser:devpassword@localhost:15432/[devdb] (replace with project db name; create new db: CREATE DATABASE project_name;)
-- Redis: redis://devuser:devpassword@localhost:16379/[db_number] (16 databases 0-15, use different db per project; example: /0 for project1, /1 for project2)
-- RabbitMQ: amqp://devuser:devpassword@localhost:15673/[vhost_name] (create vhost per project; Management UI: http://localhost:15672)
 
-### Multi-Project Usage
-**PostgreSQL**: Create separate databases per project
+### Database Services
+- **PostgreSQL**: postgresql://devuser:devpassword@localhost:15432/[project_db]
+- **Supabase**: postgres://postgres:postgres@localhost:15433/postgres (includes REST API: http://localhost:13000, Admin: http://localhost:13010)
+- **Redis**: redis://devuser:devpassword@localhost:16379/[db_number]
+- **RabbitMQ**: amqp://devuser:devpassword@localhost:15673/[vhost] (UI: http://localhost:15672)
+
+### Service Management
 ```bash
-# Connect to PostgreSQL and create new database
+# Start individual services
+cd services-dev/postgresql && docker compose up -d
+cd services-dev/supabase && docker compose up -d
+cd services-dev/redis && docker compose up -d
+cd services-dev/rabbitmq && docker compose up -d
+
+# Check service status
+docker compose ps
+```
+
+### Database Usage Patterns
+
+**PostgreSQL** (General purpose SQL database)
+```bash
+# Create project database
 docker exec -it dev-postgresql psql -U devuser -d devdb -c "CREATE DATABASE project_name;"
+# Connect from application: postgresql://devuser:devpassword@localhost:15432/project_name
 ```
 
-**Redis**: Use different database numbers (0-15) per project
+**Supabase** (Full-stack platform with auto-generated REST API)
 ```bash
-# Connect to specific Redis database
-redis-cli -h localhost -p 16379 -a devpassword -n [db_number]
+# Access admin interface: http://localhost:13010
+# REST API endpoint: http://localhost:13000
+# Direct DB access: postgres://postgres:postgres@localhost:15433/postgres
+# API example: curl http://localhost:13000/your_table
 ```
 
-**RabbitMQ**: Create virtual hosts per project
+**Redis** (Key-value cache/sessions)
 ```bash
-# Create new virtual host and set permissions
+# Use different DB numbers per project (0-15)
+redis-cli -h localhost -p 16379 -a devpassword -n 0  # project1
+redis-cli -h localhost -p 16379 -a devpassword -n 1  # project2
+```
+
+**RabbitMQ** (Message broker)
+```bash
+# Create project vhost
 docker exec dev-rabbitmq rabbitmqctl add_vhost project_name
 docker exec dev-rabbitmq rabbitmqctl set_permissions -p project_name devuser ".*" ".*" ".*"
+# Connect: amqp://devuser:devpassword@localhost:15673/project_name
 ```
 
 ## Workflow Checklist (on finishing each step)
