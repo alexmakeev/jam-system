@@ -52,6 +52,7 @@ docker run -d --name service-name \
 - **Supabase**: postgres://postgres:postgres@localhost:15433/postgres (includes REST API: http://localhost:13000, Admin: http://localhost:13010)
 - **Redis**: redis://devuser:devpassword@localhost:16379/[db_number]
 - **RabbitMQ**: amqp://devuser:devpassword@localhost:15673/[vhost] (UI: http://localhost:15672)
+- **MinIO S3**: http://localhost:19000 (Console UI: http://localhost:19001, Access Key: devuser, Secret Key: devpassword)
 
 ### Service Management
 ```bash
@@ -60,6 +61,7 @@ cd services-dev/postgresql && docker compose up -d
 cd services-dev/supabase && docker compose up -d
 cd services-dev/redis && docker compose up -d
 cd services-dev/rabbitmq && docker compose up -d
+cd services-dev/minio && docker compose up -d
 
 # Check service status
 docker compose ps
@@ -97,6 +99,14 @@ docker exec dev-rabbitmq rabbitmqctl set_permissions -p project_name devuser ".*
 # Connect: amqp://devuser:devpassword@localhost:15673/project_name
 ```
 
+**MinIO S3** (Object storage/file uploads)
+```bash
+# Access web console: http://localhost:19001 (devuser/devpassword)
+# API endpoint: http://localhost:19000
+# Create bucket via console or API
+# Upload/download objects via SDK or REST API
+```
+
 ## Workflow Checklist (on finishing each step)
 - ✅ Run **linting**  
 - ✅ Run **tests** (fix errors if critical)  
@@ -105,10 +115,60 @@ docker exec dev-rabbitmq rabbitmqctl set_permissions -p project_name devuser ".*
 - ✅ Add commit with short version history summary (include test coverage)  
 - ✅ Run `git push`  
 
+## Server Initialization
+
+### init_server.sh
+Unified server initialization script for fresh Ubuntu 22.04 installations. Provides interactive menu for installing and configuring development tools.
+
+**Usage:**
+```bash
+sudo ./init_server.sh
+```
+
+**Features:**
+- **Complete Server Setup**: One-click installation of all development tools
+- **Idempotent**: Safe to run multiple times without breaking existing installations
+- **Interactive Menu**: User-friendly interface for selecting components
+- **Individual Components**: Install specific tools as needed
+
+**Installed Components:**
+- Basic packages (git, ripgrep, jq, build-essential, etc.)
+- Glow (markdown viewer)
+- Docker Engine + Compose
+- Node.js 20 LTS + npm
+- GitHub CLI
+- Claude Code (system-wide installation in /usr/local/bin)
+- Playwright dependencies
+- Swap file (custom size)
+- SSH keepalive configuration
+- User management tools
+
+**Menu Options:**
+1. Complete Server Setup - Installs all components + system configuration
+2. Create Swap File (custom size) - Interactive swap creation with system info and recommendations
+3. Configure SSH Keepalive - Prevents SSH disconnections
+4. Create New User - Add development user with SSH keys
+5. Install Individual Components - Cherry-pick specific tools
+6. System Information - Display current system specs
+7. Verify Installations - Check what's already installed
+
+**Swap File Creation:**
+- Displays system RAM, disk space, and availability
+- Provides intelligent size recommendations based on RAM
+- Validates input format and available space
+- Supports GB/MB format (e.g., 4G, 8G, 1024M)
+- Safe recreation of existing swap files
+
+**Safety Features:**
+- Checks existing installations before attempting to install
+- Preserves user groups and permissions
+- Backs up configuration files before changes
+- Validates configurations before applying
+
 ## Shell Command Rules
-- Always run commands with `timeout` (give **2× expected time**).  
-- If timeout hits → analyze output, decide to increase timeout or try another approach.  
-- If a system command is missing → suggest installation using:  
+- Always run commands with `timeout` (give **2× expected time**).
+- If timeout hits → analyze output, decide to increase timeout or try another approach.
+- If a system command is missing → suggest installation using:
   ```bash
   printf "\\" | sudo -S <command>
   ```
