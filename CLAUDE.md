@@ -32,3 +32,7 @@ This is primarily a configuration and documentation repository for system admini
 - Use materils folder to store any not-in-repo sandboxes that you intermediately need, like exploring sources of any libs
 - use docker compose command (without dash)
 - install all dockerized services without exposing ports externally. Add super dry docs on how use newly installed service into ./CORE.md
+
+## Public Services
+
+- **ArangoDB Web UI**: https://arango.robobobr.ru (Basic Auth: admin/1q2w3e, then login with root/devpassword or alexmak/1q2w3e)

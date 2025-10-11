@@ -52,7 +52,7 @@ Caddy runs via systemctl on this server, config at `/etc/caddy/Caddyfile`.
 ### Database Services
 - **PostgreSQL**: postgresql://devuser:devpassword@localhost:15432/[project_db]
 - **Supabase**: postgres://postgres:postgres@localhost:15433/postgres (includes REST API: http://localhost:13000, Admin: http://localhost:13010)
-- **ArangoDB**: http://localhost:18529 (Web UI: http://localhost:18529, Root: root/devpassword, User: alexmak/1q2w3e)
+- **ArangoDB**: http://localhost:18529 (Web UI: http://localhost:18529, Public UI: https://arango.robobobr.ru [Basic Auth: admin/1q2w3e], Root: root/devpassword, User: alexmak/1q2w3e)
 - **Redis**: redis://devuser:devpassword@localhost:16379/[db_number]
 - **RabbitMQ**: amqp://devuser:devpassword@localhost:15673/[vhost] (UI: http://localhost:15672)
 - **MinIO S3**: http://localhost:19000 (Console UI: http://localhost:19001, Access Key: devuser, Secret Key: devpassword)
@@ -113,7 +113,8 @@ docker exec dev-rabbitmq rabbitmqctl set_permissions -p project_name devuser ".*
 
 **ArangoDB** (Multi-model database: graphs, documents, key-value)
 ```bash
-# Access Web UI: http://localhost:18529
+# Access Web UI (local): http://localhost:18529
+# Access Web UI (public): https://arango.robobobr.ru (Basic Auth: admin/1q2w3e)
 # Login with root: root/devpassword (admin access, full permissions)
 # Login with user: alexmak/1q2w3e (UI access, rw permissions on _system)
 # API endpoint: http://localhost:18529/_api/
