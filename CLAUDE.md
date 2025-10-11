@@ -35,4 +35,7 @@ This is primarily a configuration and documentation repository for system admini
 
 ## Public Services
 
-- **ArangoDB Web UI**: https://arango.robobobr.ru (Basic Auth: admin/1q2w3e, then login with root/devpassword or alexmak/1q2w3e)
+- **ArangoDB Web UI**: https://arango.robobobr.ru
+  - Basic Auth: admin/1q2w3e (Caddy layer, protects UI from bots)
+  - ArangoDB login: root/devpassword (admin) or alexmak/1q2w3e (user)
+  - API endpoints (whoAmI, /_api/*) bypass Basic Auth for AJAX compatibility
