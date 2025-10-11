@@ -20,18 +20,20 @@
 - !IMPORTANT Never kill unknown docker containers! Clarify twice that you manages correct containers.
 - !IMPORTANT Use only local port for any kind of services you run at docker-compose, don't expose any port outside the machine.
 - !IMPORTANT Use `--restart unless-stopped` policy for all production containers to ensure persistence over system restarts.
-- !IMPORTANT For production domains use Caddy auto-discovery with Docker labels. Save full https url to ./CLAUDE.md and report to user.
+- !IMPORTANT For production domains use Caddy reverse proxy (systemctl). Save full https url to ./CLAUDE.md and report to user.
 
-### Caddy Auto-Discovery Pattern:
-```bash
-# Before launching, stop any existing containers with same domain label
-docker stop old-container-name 2>/dev/null || true
-docker run -d --name service-name \
-  --label "caddy=subdomain.robobobr.ru" \
-  --label "caddy.reverse_proxy={{upstreams PORT}}" \
-  --restart unless-stopped image:tag
-```
-- !IMPORTANT Check for existing containers with same domain before deploy - otherwise traffic may be served by old container
+### Caddy Reverse Proxy (systemctl):
+Caddy runs via systemctl on this server, config at `/etc/caddy/Caddyfile`.
+
+**Steps to add new domain:**
+1. Backup config: `cp /etc/caddy/Caddyfile /etc/caddy/Caddyfile.backup.$(date +%Y%m%d_%H%M%S)`
+2. Edit `/etc/caddy/Caddyfile` (ask user for sudo approval)
+3. Add domain block (see ./CLAUDE.md for template)
+4. Reload: `printf '\\\n' | sudo -S systemctl reload caddy`
+5. Verify: `curl https://subdomain.robobobr.ru`
+
+- !IMPORTANT Always backup before editing Caddyfile
+- !IMPORTANT Ask user for sudo approval before any Caddyfile changes
 
 ## Tests
 - Each test must include dry reference to real situation or docs that declare required behavior
@@ -50,6 +52,7 @@ docker run -d --name service-name \
 ### Database Services
 - **PostgreSQL**: postgresql://devuser:devpassword@localhost:15432/[project_db]
 - **Supabase**: postgres://postgres:postgres@localhost:15433/postgres (includes REST API: http://localhost:13000, Admin: http://localhost:13010)
+- **ArangoDB**: http://localhost:18529 (Web UI: http://localhost:18529, Root: root/devpassword, User: alexmak/1q2w3e)
 - **Redis**: redis://devuser:devpassword@localhost:16379/[db_number]
 - **RabbitMQ**: amqp://devuser:devpassword@localhost:15673/[vhost] (UI: http://localhost:15672)
 - **MinIO S3**: http://localhost:19000 (Console UI: http://localhost:19001, Access Key: devuser, Secret Key: devpassword)
@@ -59,6 +62,7 @@ docker run -d --name service-name \
 # Start individual services
 cd services-dev/postgresql && docker compose up -d
 cd services-dev/supabase && docker compose up -d
+cd services-dev/arangodb && docker compose up -d
 cd services-dev/redis && docker compose up -d
 cd services-dev/rabbitmq && docker compose up -d
 cd services-dev/minio && docker compose up -d
@@ -105,6 +109,23 @@ docker exec dev-rabbitmq rabbitmqctl set_permissions -p project_name devuser ".*
 # API endpoint: http://localhost:19000
 # Create bucket via console or API
 # Upload/download objects via SDK or REST API
+```
+
+**ArangoDB** (Multi-model database: graphs, documents, key-value)
+```bash
+# Access Web UI: http://localhost:18529
+# Login with root: root/devpassword (admin access, full permissions)
+# Login with user: alexmak/1q2w3e (UI access, rw permissions on _system)
+# API endpoint: http://localhost:18529/_api/
+# Create database: curl -u root:devpassword -X POST http://localhost:18529/_api/database -d '{"name":"project_name"}'
+# Connect from app: http://localhost:18529 (use root credentials for full access)
+
+# Create additional users (via arangosh):
+docker exec dev-arangodb arangosh --server.password devpassword --javascript.execute-string "
+const users = require('@arangodb/users');
+users.save('username', 'password', true);
+users.grantDatabase('username', '_system', 'rw');
+"
 ```
 
 ## Workflow Checklist (on finishing each step)

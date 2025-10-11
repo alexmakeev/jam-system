@@ -1,0 +1,17 @@
+services:
+  arangodb:
+    image: arangodb:latest
+    container_name: dev-arangodb
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:18529:8529"
+    environment:
+      ARANGO_ROOT_PASSWORD: devpassword
+    volumes:
+      - ./docker_data:/var/lib/arangodb3
+    network_mode: bridge
+    healthcheck:
+      test: ["CMD", "arangosh", "--server.endpoint", "http+tcp://127.0.0.1:8529", "--server.password", "devpassword", "--javascript.execute-string", "db._version();"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
